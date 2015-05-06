@@ -10,6 +10,7 @@ cache_dir=$2
 env_dir=$3
 
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
+RUBY_VERSION=$(basename $(ruby -e 'print Gem.user_dir'))
 
 # Load some convenience functions like status(), echo(), and indent()
 source $bp_dir/bin/common.sh
@@ -77,6 +78,7 @@ else
   status "No Gruntfile (grunt.js, Gruntfile.js, Gruntfile.coffee) found"
 fi
 
+BOWER_DIR=$(cat $build_dir/.bowerrc | $bp_dir/vendor/jq -r .directory)
 
 # If node_modules directory is checked into source control then
 # rebuild any native deps. Otherwise, restore from the build cache.
@@ -87,6 +89,10 @@ if test -d $build_dir/node_modules; then
 elif test -d $cache_dir/node/node_modules; then
   status "Restoring node_modules directory from cache"
   cp -r $cache_dir/node/node_modules $build_dir/
+
+  if test -d $cache_dir/node/bower_components; then
+    cp -r $cache_dir/node/bower_components $build_dir/$BOWER_DIR
+  fi
 
   status "Pruning cached dependencies not specified in package.json"
   npm prune 2>&1 | indent
@@ -128,6 +134,11 @@ if test -d $build_dir/node_modules; then
   cp -r $build_dir/node_modules $cache_dir/node
 fi
 
+if test -d $build_dir/$BOWER_DIR; then
+  status "Caching bower components directory for future builds"
+  cp -r $build_dir/$BOWER_DIR $cache_dir/node
+fi
+
 # Copy goodies to the cache
 cp -r $build_dir/.heroku $cache_dir/node
 
@@ -152,13 +163,10 @@ fi
 
 # install compass
 status "Installing Compass and HAML"
-if [ "$STACK" == "cedar-14" ]; then
-  export GEM_HOME=$cache_dir/ruby/.gem/ruby/2.2.0
-else
-  export GEM_HOME=$cache_dir/ruby/.gem/ruby/1.9.1
-fi
+
+export GEM_HOME=$cache_dir/ruby/.gem/ruby/$RUBY_VERSION
 PATH="$GEM_HOME/bin:$PATH"
-if test -d $cache_dir/ruby/.gem; then
+if test -d $cache_dir/ruby/.gem/ruby/$RUBY_VERSION; then
   status "Restoring ruby gems directory from cache"
   cp -r $cache_dir/ruby/.gem $build_dir
   HOME=$build_dir gem update compass --user-install --no-rdoc --no-ri
@@ -181,7 +189,7 @@ fi
 status "Building runtime environment"
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\"\$HOME/vendor/node/bin:\$HOME/bin:\$HOME/node_modules/.bin:\$PATH\";" > $build_dir/.profile.d/nodejs.sh
-echo "export PATH=\"\$HOME/.gem/ruby/2.0.0/bin:\$PATH\"" > $build_dir/.profile.d/ruby.sh
+echo "export PATH=\"\$HOME/.gem/ruby/$RUBY_VERSION/bin:\$PATH\"" > $build_dir/.profile.d/ruby.sh
 
 # Check and run Grunt
 (
