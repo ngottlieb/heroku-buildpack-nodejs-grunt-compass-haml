@@ -171,9 +171,11 @@ if test -d $cache_dir/ruby/.gem/ruby/$RUBY_VERSION; then
   cp -r $cache_dir/ruby/.gem $build_dir
   HOME=$build_dir gem update compass --user-install --no-rdoc --no-ri
   HOME=$build_dir gem update haml --user-install --no-rdoc --no-ri
+  HOME=$build_dir gem update haml2html --user-install --no-rdoc --no-ri
 else
   HOME=$build_dir gem install compass --user-install --no-rdoc --no-ri
   HOME=$build_dir gem install haml --user-install --no-rdoc --no-ri
+  HOME=$build_dir gem install haml2html --user-install --no-rdoc --no-ri
 fi
 
 # cache ruby gems compass and haml
