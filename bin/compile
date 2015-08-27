@@ -162,7 +162,7 @@ if [ ! -e $build_dir/Procfile ]; then
 fi
 
 # install compass
-status "Installing Compass and HAML"
+status "Installing Compass and Sass"
 
 export GEM_HOME=$cache_dir/ruby/.gem/ruby/$RUBY_VERSION
 PATH="$GEM_HOME/bin:$PATH"
@@ -170,15 +170,13 @@ if test -d $cache_dir/ruby/.gem/ruby/$RUBY_VERSION; then
   status "Restoring ruby gems directory from cache"
   cp -r $cache_dir/ruby/.gem $build_dir
   HOME=$build_dir gem update compass --user-install --no-rdoc --no-ri
-  HOME=$build_dir gem update haml --user-install --no-rdoc --no-ri
-  HOME=$build_dir gem update haml2html --user-install --no-rdoc --no-ri
+  HOME=$build_dir gem update sass --user-install --no-rdoc --no-ri
 else
   HOME=$build_dir gem install compass --user-install --no-rdoc --no-ri
-  HOME=$build_dir gem install haml --user-install --no-rdoc --no-ri
-  HOME=$build_dir gem install haml2html --user-install --no-rdoc --no-ri
+  HOME=$build_dir gem install sass --user-install --no-rdoc --no-ri
 fi
 
-# cache ruby gems compass and haml
+# cache ruby gems compass and sass
 rm -rf $cache_dir/ruby
 mkdir -p $cache_dir/ruby
 
